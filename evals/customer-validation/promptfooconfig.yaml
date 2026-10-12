@@ -1,0 +1,19 @@
+# yaml-language-server: $schema=https://promptfoo.dev/config-schema.json
+
+description: Customer Validation Agent
+
+prompts:
+  - file://conversation-prompt.txt
+
+providers:
+  - id: azure:responses:{{ env.FOUNDRY_MODEL }}
+    label: Azure Foundry
+    config:
+      apiHost: '{{ env.FOUNDRY_API_HOST }}'
+      apiKeyEnvar: FOUNDRY_API_KEY
+
+defaultTest:
+  vars:
+    systemPrompt: file://../../prompts/customer-validation.txt
+
+tests: file://../../dist/evals/customer-validation/generate-tests.js

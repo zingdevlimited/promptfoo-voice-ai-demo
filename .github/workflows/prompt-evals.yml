@@ -1,0 +1,122 @@
+name: Evaluate Customer Validation Prompt
+
+on:
+  workflow_dispatch:
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  evaluate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build prompt evaluations
+        run: npm run build
+
+      - name: Check evaluation results
+        if: ${{ !cancelled() && steps.evaluation.outcome != 'skipped' }}
+        run: |
+          node --input-type=module <<'NODE'
+          import { readFile, appendFile } from 'node:fs/promises';
+
+          const report = JSON.parse(
+            await readFile('results/evaluation.json', 'utf8')
+          );
+
+          const rows = report.results?.results;
+          const stats = report.results?.stats;
+
+          if (
+            !Array.isArray(rows) ||
+            !Number.isInteger(stats?.errors) ||
+            stats.errors < 0
+          ) {
+            throw new Error('Evaluation report is invalid');
+          }
+
+          // Only count the actual field validation cases.
+          // Consent/address/postcode setup turns have no assertions.
+          const cases = rows.filter(
+            row =>
+              Array.isArray(row.testCase?.assert) &&
+              row.testCase.assert.length > 0
+          );
+
+          const passed = cases.filter(
+            row => row.success === true
+          ).length;
+
+          const failed = cases.filter(
+            row =>
+              row.success === false &&
+              row.gradingResult?.pass === false
+          ).length;
+
+          const result =
+            stats.errors > 0
+              ? 'Evaluation encountered execution errors'
+              : cases.length === 0
+                ? 'No validation cases were run'
+                : passed === cases.length
+                  ? 'All checked cases passed'
+                  : 'Some checked cases did not pass';
+
+          await appendFile(
+            process.env.GITHUB_STEP_SUMMARY,
+            [
+              '## Customer Validation Prompt Evaluation',
+              '',
+              `**Result: ${result}**`,
+              '',
+              `Model: ${process.env.FOUNDRY_MODEL}`,
+              '',
+              '| Validation cases | Passed | Failed assertions | Execution errors |',
+              '| --- | --- | --- | --- |',
+              `| ${cases.length} | ${passed} | ${failed} | ${stats.errors} |`,
+              '',
+              'Conversation setup turns are excluded from validation counts.',
+              '',
+              '**Report-only:** assertion failures are reported without failing the workflow. Execution errors still fail the workflow.',
+              '',
+              'The full HTML and JSON reports are available in the workflow artifacts.',
+              '',
+            ].join('\n')
+          );
+
+          if (cases.length === 0) {
+            throw new Error('No validation cases were run');
+          }
+
+          if (stats.errors > 0) {
+            throw new Error(
+              'Prompt evaluation encountered execution errors'
+            );
+          }
+          NODE
+
+      - name: Upload evaluation reports
+        if: ${{ !cancelled() && steps.evaluation.outcome != 'skipped' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: customer-validation-results-${{ github.run_number }}
+          path: results/
+          if-no-files-found: warn
+          retention-days: 14

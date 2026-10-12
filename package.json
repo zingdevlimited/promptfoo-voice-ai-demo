@@ -1,0 +1,17 @@
+{
+    "name": "promptfoo-voice-ai-demo",
+    "version": "1.0.0",
+    "private": true,
+    "description": "Promptfoo evaluation demo for a voice AI customer validation agent",
+    "type": "module",
+    "scripts": {
+        "build": "tsc",
+        "eval": "npm run build && promptfoo eval -c evals/customer-validation/promptfooconfig.yaml --no-cache",
+        "eval:view": "promptfoo view"
+    },
+    "devDependencies": {
+        "@types/node": "^24.19.2",
+        "promptfoo": "^0.120.27",
+        "typescript": "^5.9.3"
+    }
+}
