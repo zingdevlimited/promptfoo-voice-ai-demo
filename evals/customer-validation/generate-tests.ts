@@ -1,4 +1,7 @@
-import testData, { type Field, type ExpectedResult } from './test-data.js';
+import testData, {
+  type Field,
+  type ExpectedResult,
+} from './test-data.ts';
 
 interface GeneratedTest {
   description: string;
@@ -82,8 +85,7 @@ export default async function generateTests(): Promise<GeneratedTest[]> {
       assert: [
         {
           type: 'javascript',
-          value:
-            'file://../../dist/evals/customer-validation/field-validation.js',
+          value: 'file://field-validation.ts',
           metric: 'FieldValidation',
         },
       ],

@@ -16,4 +16,4 @@ defaultTest:
   vars:
     systemPrompt: file://../../prompts/customer-validation.txt
 
-tests: file://../../dist/evals/customer-validation/generate-tests.js
+tests: file://generate-tests.ts

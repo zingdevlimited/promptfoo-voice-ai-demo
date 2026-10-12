@@ -1,7 +1,7 @@
 import type {
   Field,
   ExpectedResult,
-} from './test-data.js';
+} from './test-data.ts';
 
 interface AssertionContext {
   vars: {
