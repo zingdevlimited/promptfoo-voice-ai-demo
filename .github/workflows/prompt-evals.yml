@@ -31,8 +31,27 @@ jobs:
       - name: Build prompt evaluations
         run: npm run build
 
+      - name: Evaluate customer validation prompt
+        id: evaluation
+        env:
+          FOUNDRY_API_HOST: ${{ vars.FOUNDRY_API_HOST }}
+          FOUNDRY_API_KEY: ${{ secrets.FOUNDRY_API_KEY }}
+          FOUNDRY_MODEL: ${{ vars.FOUNDRY_MODEL }}
+          NODE_OPTIONS: --import tsx
+          PROMPTFOO_CONFIG_DIR: ${{ runner.temp }}/promptfoo-${{ github.run_id }}-${{ github.run_attempt }}
+        run: |
+          mkdir -p results
+
+          npx promptfoo eval \
+            -c evals/customer-validation/promptfooconfig.yaml \
+            --no-cache \
+            --no-share \
+            --max-concurrency 1 \
+            -o results/evaluation.json \
+            -o results/evaluation.html
+
       - name: Check evaluation results
-        if: ${{ !cancelled() && steps.evaluation.outcome != 'skipped' }}
+        if: ${{ success() }}
         run: |
           node --input-type=module <<'NODE'
           import { readFile, appendFile } from 'node:fs/promises';
@@ -113,7 +132,7 @@ jobs:
           NODE
 
       - name: Upload evaluation reports
-        if: ${{ !cancelled() && steps.evaluation.outcome != 'skipped' }}
+        if: ${{ success() }}
         uses: actions/upload-artifact@v4
         with:
           name: customer-validation-results-${{ github.run_number }}
