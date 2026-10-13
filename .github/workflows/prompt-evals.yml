@@ -42,13 +42,20 @@ jobs:
         run: |
           mkdir -p results
 
+          exit_code=0
+
           npx promptfoo eval \
             -c evals/customer-validation/promptfooconfig.yaml \
             --no-cache \
             --no-share \
             --max-concurrency 1 \
             -o results/evaluation.json \
-            -o results/evaluation.html
+            -o results/evaluation.html \
+            || exit_code=$?
+
+          if [ "$exit_code" -ne 0 ] && [ "$exit_code" -ne 100 ]; then
+            exit "$exit_code"
+          fi
 
       - name: Check evaluation results
         if: ${{ success() }}
