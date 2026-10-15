@@ -12,6 +12,10 @@ permissions:
 
 jobs:
   evaluate:
+    # Fork PRs get no secrets, so the eval cannot run for them.
+    if: >-
+      github.event_name != 'pull_request' ||
+      github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     timeout-minutes: 15
 
@@ -34,9 +38,9 @@ jobs:
       - name: Evaluate customer validation prompt
         id: evaluation
         env:
-          FOUNDRY_API_HOST: ${{ vars.FOUNDRY_API_HOST }}
+          FOUNDRY_API_HOST: ${{ secrets.FOUNDRY_API_HOST }}
           FOUNDRY_API_KEY: ${{ secrets.FOUNDRY_API_KEY }}
-          FOUNDRY_MODEL: ${{ vars.FOUNDRY_MODEL }}
+          FOUNDRY_MODEL: ${{ secrets.FOUNDRY_MODEL }}
           NODE_OPTIONS: --import tsx
           PROMPTFOO_CONFIG_DIR: ${{ runner.temp }}/promptfoo-${{ github.run_id }}-${{ github.run_attempt }}
         run: |
@@ -50,7 +54,6 @@ jobs:
             --no-share \
             --max-concurrency 1 \
             -o results/evaluation.json \
-            -o results/evaluation.html \
             || exit_code=$?
 
           if [ "$exit_code" -ne 0 ] && [ "$exit_code" -ne 100 ]; then
@@ -112,8 +115,6 @@ jobs:
               '',
               `**Result: ${result}**`,
               '',
-              `Model: ${process.env.FOUNDRY_MODEL}`,
-              '',
               '| Validation cases | Passed | Failed assertions | Execution errors |',
               '| --- | --- | --- | --- |',
               `| ${cases.length} | ${passed} | ${failed} | ${stats.errors} |`,
@@ -121,8 +122,6 @@ jobs:
               'Conversation setup turns are excluded from validation counts.',
               '',
               '**Report-only:** assertion failures are reported without failing the workflow. Execution errors still fail the workflow.',
-              '',
-              'The full HTML and JSON reports are available in the workflow artifacts.',
               '',
             ].join('\n')
           );
@@ -137,12 +136,3 @@ jobs:
             );
           }
           NODE
-
-      - name: Upload evaluation reports
-        if: ${{ success() }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: customer-validation-results-${{ github.run_number }}
-          path: results/
-          if-no-files-found: warn
-          retention-days: 14

@@ -2,6 +2,7 @@
     "name": "promptfoo-voice-ai-demo",
     "version": "1.0.0",
     "private": true,
+    "license": "0BSD",
     "description": "Promptfoo evaluation demo for a voice AI customer validation agent",
     "type": "module",
     "scripts": {
