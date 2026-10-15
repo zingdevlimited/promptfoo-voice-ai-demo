@@ -80,3 +80,7 @@ The workflow runs on pull requests, pushes to `main` and manual dispatch. Pull r
 It needs repository secrets `FOUNDRY_API_HOST`, `FOUNDRY_API_KEY` and `FOUNDRY_MODEL`. All three are secrets, not variables, so they are masked in public run logs.
 
 The run is report-only for assertions: failed cases appear in the job summary but do not fail the build. Execution errors, or zero cases run, do fail the build. Reports are not uploaded as artifacts, because promptfoo writes the resolved provider config (including the API host) into them. Run `npm run eval` locally for the full report.
+
+## License
+
+[0BSD](LICENSE): use it however you like, no attribution needed. Provided as is, without warranty of any kind. See the disclaimer above.
