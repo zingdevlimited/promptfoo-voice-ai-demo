@@ -66,7 +66,7 @@ Add entries to `evals/customer-validation/test-data.ts`:
 ```ts
 {
   field: 'postcode',
-  value: 'C W 1 0 0 A B',
+  value: 'S W 1 A 1 A A',
   expected: 'accept',
 },
 ```

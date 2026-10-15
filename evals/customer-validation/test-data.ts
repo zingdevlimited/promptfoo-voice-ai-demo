@@ -48,24 +48,24 @@ const testData: TestData[] = [
   // Accept
   {
     field: 'postcode',
-    value: 'CW10 0AB',
+    value: 'SW1A 1AA',
     expected: 'accept',
   },
   {
     field: 'postcode',
-    value: 'C W 1 0 0 A B',
+    value: 'S W 1 A 1 A A',
     expected: 'accept',
   },
   {
     field: 'postcode',
-    value: 'see W 10 zero A B',
+    value: 'ess W one A one double A',
     expected: 'accept',
   },
 
   // Reject
   {
     field: 'postcode',
-    value: 'CW10',
+    value: 'SW1A',
     expected: 'reject',
   },
   {

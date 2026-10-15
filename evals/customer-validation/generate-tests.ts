@@ -67,7 +67,7 @@ export default async function generateTests(): Promise<GeneratedTest[]> {
         tests,
         conversationId,
         `${test.field} ${index + 1} - valid postcode`,
-        'CW10 0AB'
+        'SW1A 1AA'
       );
     }
 
